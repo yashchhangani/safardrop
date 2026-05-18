@@ -8,6 +8,8 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
@@ -17,12 +19,23 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     public WebMvcConfig(
             AuthInterceptor authInterceptor,
-            @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:5174,https://*.vercel.app}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:}") String allowedOrigins) {
         this.authInterceptor = authInterceptor;
-        this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
-                .map(String::trim)
-                .filter(origin -> !origin.isEmpty())
-                .toArray(String[]::new);
+
+        Set<String> mergedOrigins = new LinkedHashSet<>();
+        mergedOrigins.add("http://localhost:5173");
+        mergedOrigins.add("http://localhost:5174");
+        mergedOrigins.add("https://safardrop.vercel.app");
+        mergedOrigins.add("https://*.vercel.app");
+
+        if (allowedOrigins != null && !allowedOrigins.isBlank()) {
+            Arrays.stream(allowedOrigins.split(","))
+                    .map(String::trim)
+                    .filter(origin -> !origin.isEmpty())
+                    .forEach(mergedOrigins::add);
+        }
+
+        this.allowedOrigins = mergedOrigins.toArray(String[]::new);
     }
 
     @Override
@@ -36,7 +49,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOriginPatterns(allowedOrigins)
-                .allowedMethods("*")
+                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true);
     }
