@@ -3,9 +3,10 @@ package com.safardrop.safardrop.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-
-import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 @Entity
 @Table(name = "trips")
@@ -13,37 +14,69 @@ public class Trip {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int trip_id;
+    private int tripId;
 
-    @NotNull(message = "User ID is required")
+    @NotNull
     @Column(name = "user_id")
     private int userId;
 
-    @NotBlank(message = "Pickup location is required")
-    @Column(name = "pickup_location")
-    private String pickupLocation;
+    @NotBlank
+    @Column(name = "origin")
+    private String origin;
 
-    @NotBlank(message = "Drop location is required")
-    @Column(name = "drop_location")
-    private String dropLocation;
+    @NotBlank
+    @Column(name = "pickup_area")
+    private String pickupArea;
+
+    @NotBlank
+    @Column(name = "destination")
+    private String destination;
+
+    @NotBlank
+    @Column(name = "drop_area")
+    private String dropArea;
+
+    // ✅ FIX DATE FORMAT (IMPORTANT)
+    @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Column(name = "travel_date")
+    private LocalDate travelDate;
+
+    @NotNull
+    @Column(name = "capacity")
+    private int capacity;
 
     @Column(name = "trip_status")
     private String tripStatus;
 
-    @Column(name = "fare")
-    private BigDecimal fare;
-
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    // Getters & Setters
+    @Column(name = "fare")
+    private Double fare;
 
-    public int getTripId() {
-        return trip_id;
+    // ✅ AUTO SET VALUES BEFORE INSERT (CRITICAL FIX)
+    @PrePersist
+    public void setDefaults() {
+        this.createdAt = LocalDateTime.now();
+
+        if (this.tripStatus == null) {
+            this.tripStatus = "PENDING";
+        }
+
+        if (this.fare == null) {
+            this.fare = 0.0;
+        }
     }
 
-    public void setTripId(int trip_id) {
-        this.trip_id = trip_id;
+    // ================= GETTERS & SETTERS =================
+
+    public int getTripId() {
+        return tripId;
+    }
+
+    public void setTripId(int tripId) {
+        this.tripId = tripId;
     }
 
     public int getUserId() {
@@ -54,20 +87,52 @@ public class Trip {
         this.userId = userId;
     }
 
-    public String getPickupLocation() {
-        return pickupLocation;
+    public String getOrigin() {
+        return origin;
     }
 
-    public void setPickupLocation(String pickupLocation) {
-        this.pickupLocation = pickupLocation;
+    public void setOrigin(String origin) {
+        this.origin = origin;
     }
 
-    public String getDropLocation() {
-        return dropLocation;
+    public String getDestination() {
+        return destination;
     }
 
-    public void setDropLocation(String dropLocation) {
-        this.dropLocation = dropLocation;
+    public void setDestination(String destination) {
+        this.destination = destination;
+    }
+
+    public String getPickupArea() {
+        return pickupArea;
+    }
+
+    public void setPickupArea(String pickupArea) {
+        this.pickupArea = pickupArea;
+    }
+
+    public String getDropArea() {
+        return dropArea;
+    }
+
+    public void setDropArea(String dropArea) {
+        this.dropArea = dropArea;
+    }
+
+    public LocalDate getTravelDate() {
+        return travelDate;
+    }
+
+    public void setTravelDate(LocalDate travelDate) {
+        this.travelDate = travelDate;
+    }
+
+    public int getCapacity() {
+        return capacity;
+    }
+
+    public void setCapacity(int capacity) {
+        this.capacity = capacity;
     }
 
     public String getTripStatus() {
@@ -78,19 +143,19 @@ public class Trip {
         this.tripStatus = tripStatus;
     }
 
-    public BigDecimal getFare() {
-        return fare;
-    }
-
-    public void setFare(BigDecimal fare) {
-        this.fare = fare;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Double getFare() {
+        return fare;
+    }
+
+    public void setFare(Double fare) {
+        this.fare = fare;
     }
 }

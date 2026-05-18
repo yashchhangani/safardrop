@@ -31,3 +31,17 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Local artifacts
+*.class
+*.zip
+frontend/dist/
+frontend/node_modules/
+
+# Local environment files
+.env
+.env.*
+frontend/.env
+frontend/.env.*
+backend.env
+.devdb/

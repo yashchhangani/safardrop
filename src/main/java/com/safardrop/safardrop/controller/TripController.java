@@ -2,58 +2,63 @@ package com.safardrop.safardrop.controller;
 
 import com.safardrop.safardrop.dto.TripDTO;
 import com.safardrop.safardrop.entity.Trip;
+import com.safardrop.safardrop.security.RequestAuthorizationService;
 import com.safardrop.safardrop.service.TripService;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/trips")
+@RequestMapping("/api/trips")
 public class TripController {
 
     private final TripService tripService;
+    private final RequestAuthorizationService requestAuthorizationService;
 
-    public TripController(TripService tripService) {
+    public TripController(TripService tripService, RequestAuthorizationService requestAuthorizationService) {
         this.tripService = tripService;
+        this.requestAuthorizationService = requestAuthorizationService;
     }
 
-    // Get all trips
     @GetMapping
     public ResponseEntity<List<TripDTO>> getAllTrips() {
         return ResponseEntity.ok(tripService.getAllTrips());
     }
 
-    // Get trip by ID
-    @GetMapping("/{id}")
-    public ResponseEntity<TripDTO> getTripById(@PathVariable int id) {
-        return ResponseEntity.ok(tripService.getTripById(id));
+    @GetMapping("/search")
+    public ResponseEntity<List<TripDTO>> searchTrips(
+            @RequestParam String origin,
+            @RequestParam String destination
+    ) {
+        return ResponseEntity.ok(tripService.searchTrips(origin, destination));
     }
 
-    // Get trips by user
-    @GetMapping("/user/{user_id}")
-    public ResponseEntity<List<TripDTO>> getTripsByUser(@PathVariable int user_id) {
-        return ResponseEntity.ok(tripService.getTripsByUser(user_id));
+    @GetMapping("/{tripId}")
+    public ResponseEntity<TripDTO> getTripById(@PathVariable int tripId) {
+        return ResponseEntity.ok(tripService.getTripById(tripId));
     }
 
-    // Create trip
     @PostMapping
-    public ResponseEntity<TripDTO> createTrip(@Valid @RequestBody Trip trip) {
-        return new ResponseEntity<>(tripService.createTrip(trip), HttpStatus.CREATED);
+    public ResponseEntity<?> createTrip(@Valid @RequestBody Trip trip, HttpServletRequest request) {
+        requestAuthorizationService.requireSelfOrAdmin(request, trip.getUserId());
+        try {
+            return ResponseEntity.ok(tripService.createTrip(trip));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Failed to create trip"));
+        }
     }
 
-    // Update trip
-    @PutMapping("/{id}")
-    public ResponseEntity<TripDTO> updateTrip(@PathVariable int id, @Valid @RequestBody Trip trip) {
-        return ResponseEntity.ok(tripService.updateTrip(id, trip));
-    }
-
-    // Delete trip
-    @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteTrip(@PathVariable int id) {
-        tripService.deleteTrip(id);
-        return ResponseEntity.ok("Trip deleted successfully");
+    @GetMapping("/my")
+    public ResponseEntity<List<TripDTO>> getMyTrips(@RequestParam int userId, HttpServletRequest request) {
+        requestAuthorizationService.requireSelfOrAdmin(request, userId);
+        return ResponseEntity.ok(tripService.getTripsByUser(userId));
     }
 }

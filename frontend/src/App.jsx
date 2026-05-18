@@ -1,34 +1,59 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import TripDetails from "./pages/TripDetails";
-import CreateTrip from "./pages/CreateTrip";
-import MyTrips from "./pages/MyTrips";
-import PostRoute from "./pages/PostRoute";
-import MyBookings from "./pages/MyBookings";
-import BookingDetails from "./pages/BookingDetails";   // ✅ NEW
-import Payment from "./pages/Payment";                 // ✅ NEW
+import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Navbar from "./components/Navbar";
+import AdminDashboard from "./pages/AdminDashboard";
+import BookingDetails from "./pages/BookingDetails";
+import CreateTrip from "./pages/CreateTrip";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import MyBookings from "./pages/MyBookings";
+import MyTrips from "./pages/MyTrips";
+import Notifications from "./pages/Notifications";
+import Payment from "./pages/Payment";
+import PickupMap from "./pages/PickupMap";
+import SendParcel from "./pages/SendParcel";
+import Signup from "./pages/Signup";
+import TripDetails from "./pages/TripDetails";
+import { getStoredUser } from "./services/api";
 
 export default function App() {
+  const isLoggedIn = !!getStoredUser();
+
   return (
     <>
       <Navbar />
-      <Routes>
 
-        {/* Public Routes */}
-        <Route path="/" element={<Home />} />
+      <Routes>
+        <Route
+          path="/"
+          element={<Navigate to={isLoggedIn ? "/home" : "/login"} replace />}
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/trip/:id" element={<TripDetails />} />
 
-        {/* Protected Routes */}
+        <Route
+          path="/home"
+          element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/send-parcel"
+          element={
+            <ProtectedRoute>
+              <SendParcel />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/create-trip"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["TRAVELLER", "ADMIN"]}>
               <CreateTrip />
             </ProtectedRoute>
           }
@@ -37,17 +62,17 @@ export default function App() {
         <Route
           path="/my-trips"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["TRAVELLER", "ADMIN"]}>
               <MyTrips />
             </ProtectedRoute>
           }
         />
 
         <Route
-          path="/post-route"
+          path="/notifications"
           element={
-            <ProtectedRoute>
-              <PostRoute />
+            <ProtectedRoute allowedRoles={["TRAVELLER", "ADMIN"]}>
+              <Notifications />
             </ProtectedRoute>
           }
         />
@@ -55,17 +80,16 @@ export default function App() {
         <Route
           path="/my-bookings"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
               <MyBookings />
             </ProtectedRoute>
           }
         />
 
-        {/* 🔥 NEW FLOW */}
         <Route
           path="/booking/:bookingId"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
               <BookingDetails />
             </ProtectedRoute>
           }
@@ -74,14 +98,31 @@ export default function App() {
         <Route
           path="/payment/:bookingId"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["USER", "ADMIN"]}>
               <Payment />
             </ProtectedRoute>
           }
         />
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/pickup-map/:bookingId"
+          element={
+            <ProtectedRoute allowedRoles={["USER", "TRAVELLER", "ADMIN"]}>
+              <PickupMap />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute allowedRoles={["ADMIN"]}>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="*" element={<Navigate to={isLoggedIn ? "/home" : "/login"} replace />} />
       </Routes>
     </>
   );

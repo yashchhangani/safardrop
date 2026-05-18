@@ -1,14 +1,17 @@
-// src/components/ProtectedRoute.jsx
 import { Navigate } from "react-router-dom";
+import { clearStoredUser, getStoredUser } from "../services/api";
 
-export default function ProtectedRoute({ children }) {
+export default function ProtectedRoute({ children, allowedRoles }) {
+  const user = getStoredUser();
+  const token = localStorage.getItem("token");
 
-  // ✅ get user from localStorage
-  const user = JSON.parse(localStorage.getItem("user"));
-
-  // ✅ correct check
-  if (!user || !user.userId) {
+  if (!user || !user.userId || !token) {
+    clearStoredUser();
     return <Navigate to="/login" replace />;
+  }
+
+  if (allowedRoles?.length && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/home" replace />;
   }
 
   return children;

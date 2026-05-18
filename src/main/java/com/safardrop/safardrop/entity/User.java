@@ -1,7 +1,10 @@
 package com.safardrop.safardrop.entity;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users")
@@ -15,6 +18,7 @@ public class User {
     private String user_name;
 
     @Email(message = "Invalid email format")
+    @Column(unique = true)
     private String email;
 
     @Pattern(regexp = "\\d{10}", message = "Phone number must be 10 digits")
@@ -23,19 +27,62 @@ public class User {
     @Size(min = 6, message = "Password must be at least 6 characters")
     private String password;
 
-    // Getters and Setters
-    public int getUser_id() { return user_id; }
-    public void setUser_id(int user_id) { this.user_id = user_id; }
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private UserRole role;
 
-    public String getUser_name() { return user_name; }
-    public void setUser_name(String user_name) { this.user_name = user_name; }
+    @PrePersist
+    public void setDefaults() {
+        if (role == null) {
+            role = UserRole.USER;
+        }
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public int getUser_id() {
+        return user_id;
+    }
 
-    public String getPhone_no() { return phone_no; }
-    public void setPhone_no(String phone_no) { this.phone_no = phone_no; }
+    public void setUser_id(int user_id) {
+        this.user_id = user_id;
+    }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
+    public String getUser_name() {
+        return user_name;
+    }
+
+    public void setUser_name(String user_name) {
+        this.user_name = user_name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getPhone_no() {
+        return phone_no;
+    }
+
+    public void setPhone_no(String phone_no) {
+        this.phone_no = phone_no;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public UserRole getRole() {
+        return role;
+    }
+
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
 }
