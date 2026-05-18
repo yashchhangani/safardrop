@@ -1,0 +1,9 @@
+.git
+.idea
+.devdb
+frontend
+target
+node_modules
+backend-dev.log
+backend-dev.err.log
+.idea.zip
