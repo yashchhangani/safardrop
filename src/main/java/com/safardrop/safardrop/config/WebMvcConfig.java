@@ -17,7 +17,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 
     public WebMvcConfig(
             AuthInterceptor authInterceptor,
-            @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:5174}") String allowedOrigins) {
+            @Value("${app.cors.allowed-origins:http://localhost:5173,http://localhost:5174,https://*.vercel.app}") String allowedOrigins) {
         this.authInterceptor = authInterceptor;
         this.allowedOrigins = Arrays.stream(allowedOrigins.split(","))
                 .map(String::trim)
@@ -35,7 +35,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(allowedOrigins)
+                .allowedOriginPatterns(allowedOrigins)
                 .allowedMethods("*")
                 .allowedHeaders("*")
                 .allowCredentials(true);
